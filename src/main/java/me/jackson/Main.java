@@ -1,4 +1,5 @@
 package me.jackson;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
@@ -11,6 +12,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.transport.ssh.jsch.JschConfigSessionFactory;
 import org.eclipse.jgit.transport.ssh.jsch.OpenSshConfig;
+import org.eclipse.jgit.util.FS;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,6 +28,7 @@ import java.util.Date;
  */
 public class Main {
     static String path = "./path/to/repo";
+
     public static void main(String[] args) throws GitAPIException, IOException, URISyntaxException {
         // Git git = Git.cloneRepository()
         //         .setCredentialsProvider(new UsernamePasswordCredentialsProvider("Sma1lboy", "Aa20021001"))
@@ -39,33 +42,36 @@ public class Main {
         // git.push().call();
 
 
-
         SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
             @Override
-            protected void configure(OpenSshConfig.Host host, Session session ) {
+            protected void configure(OpenSshConfig.Host host, Session session) {
                 session.setConfig("StrictHostKeyChecking", "yes");
+
+            }
+
+            @Override
+            protected JSch createDefaultJSch(FS fs) throws JSchException {
+                JSch defaultJSch = super.createDefaultJSch(fs);
+                defaultJSch.addIdentity("/Users/jacksonchen/.ssh/id_ecdsa");
+                return defaultJSch;
             }
         };
-        CustomJschConfigSessionFactory jschConfigSessionFactory = new CustomJschConfigSessionFactory();
-
-        JSch jsch = new JSch();
-        try {
-            jsch.addIdentity("/Users/jacksonchen/.ssh/id_ecdsa");
-            jsch.setKnownHosts("/Users/jacksonchen/.ssh/known_hosts");
-        } catch (JSchException e) {
-            e.printStackTrace();
-        }
-        SshSessionFactory.setInstance(jschConfigSessionFactory);
         CloneCommand cloneCommand = Git.cloneRepository();
         cloneCommand
-                .setURI( "git@github.com:Sma1lboy/DailyCommitJava.git" );
-        cloneCommand.setTransportConfigCallback( new TransportConfigCallback() {
+                .setURI("git@github.com:Sma1lboy/DailyCommitJava.git")
+                .setBranch("main")
+                .setRemote("origin")
+                .setTimeout(200)
+
+        ;
+        cloneCommand.setTransportConfigCallback(new TransportConfigCallback() {
             @Override
-            public void configure( Transport transport ) {
-                SshTransport sshTransport = ( SshTransport )transport;
-                sshTransport.setSshSessionFactory( sshSessionFactory );
+            public void configure(Transport transport) {
+                SshTransport sshTransport = (SshTransport) transport;
+                sshTransport.setSshSessionFactory(sshSessionFactory);
             }
-        } ).call();
+
+        }).call();
 
 
 
@@ -82,28 +88,23 @@ public class Main {
         Date currDate = Date.from(Instant.now());
         Long currTime = currDate.toInstant().getLong(ChronoField.INSTANT_SECONDS);
         double diff = (currTime - lastUpdate) / 3600.0;
-        //check if it's over 24 hrs
-        if(diff > 24 ) {
+        // check if it's over 24 hrs
+        if (diff > 24) {
             config.setLastUpdate(currDate);
         }
         try {
             mapper.writeValue(path, config);
         } catch (IOException e) {
-            //TODO add log later
+            // TODO add log later
             e.printStackTrace();
             System.out.println("something wrong in daily schedule");
         }
-        //commit
+        // commit
     }
+
     private void dailyCommit() {
 
     }
 
-    static class CustomJschConfigSessionFactory extends JschConfigSessionFactory {
-        @Override
-        protected void configure(OpenSshConfig.Host host, Session session) {
-            session.setConfig("StrictHostKeyChecking", "yes");
-        }
-    }
 
 }
