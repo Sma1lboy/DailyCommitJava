@@ -1,24 +1,22 @@
 package me.jackson;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import me.jackson.yamls.DailyConfig;
 import org.eclipse.jgit.api.CloneCommand;
-import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.errors.TransportException;
-import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.transport.*;
-import org.eclipse.jgit.util.FS;
+import org.eclipse.jgit.transport.ssh.jsch.JschConfigSessionFactory;
+import org.eclipse.jgit.transport.ssh.jsch.OpenSshConfig;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.time.Instant;
 import java.time.temporal.ChronoField;
-import java.time.temporal.TemporalField;
 import java.util.Date;
 
 /**
@@ -45,19 +43,29 @@ public class Main {
         SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
             @Override
             protected void configure(OpenSshConfig.Host host, Session session ) {
-                // do nothing
+                session.setConfig("StrictHostKeyChecking", "yes");
             }
         };
+        CustomJschConfigSessionFactory jschConfigSessionFactory = new CustomJschConfigSessionFactory();
+
+        JSch jsch = new JSch();
+        try {
+            jsch.addIdentity("/Users/jacksonchen/.ssh/id_ecdsa");
+            jsch.setKnownHosts("/Users/jacksonchen/.ssh/known_hosts");
+        } catch (JSchException e) {
+            e.printStackTrace();
+        }
+        SshSessionFactory.setInstance(jschConfigSessionFactory);
         CloneCommand cloneCommand = Git.cloneRepository();
-        cloneCommand.setURI( "git@github.com:Sma1lboy/DailyCommitJava.git" );
+        cloneCommand
+                .setURI( "git@github.com:Sma1lboy/DailyCommitJava.git" );
         cloneCommand.setTransportConfigCallback( new TransportConfigCallback() {
             @Override
             public void configure( Transport transport ) {
                 SshTransport sshTransport = ( SshTransport )transport;
                 sshTransport.setSshSessionFactory( sshSessionFactory );
             }
-        } );
-        cloneCommand.call();
+        } ).call();
 
 
 
@@ -91,5 +99,11 @@ public class Main {
 
     }
 
+    static class CustomJschConfigSessionFactory extends JschConfigSessionFactory {
+        @Override
+        protected void configure(OpenSshConfig.Host host, Session session) {
+            session.setConfig("StrictHostKeyChecking", "yes");
+        }
+    }
 
 }
