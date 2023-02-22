@@ -1,5 +1,8 @@
 package me.jackson.yamls;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.time.LocalDate;
 import java.util.Date;
 
 /**
@@ -10,6 +13,9 @@ import java.util.Date;
 public class DailyConfig {
 
     private Date lastUpdate;
+    public DailyConfig() {
+
+    }
 
     public DailyConfig(Date lastUpdate) {
         this.lastUpdate = lastUpdate;
@@ -24,9 +30,8 @@ public class DailyConfig {
     }
 
 
-
     @Override
     public String toString() {
-        return "Last Time Update is : " + lastUpdate.toString() + "\n";
+        return super.toString();
     }
 }
