@@ -68,6 +68,13 @@ public class Main {
             git = cloneCommand.setTransportConfigCallback(transportConfigCallback).call();
             config = new DailyConfig(Date.from(Instant.now()));
             mapper.writeValue(new File(path + "/temp.yaml"), config);
+
+            git.add().addFilepattern(".").call();
+            git.commit().setMessage("updating").call();
+            PushCommand pushCommand = git.push();
+            pushCommand.setTransportConfigCallback(transportConfigCallback).call();
+            System.out.println("Initialize file... first time committed!");
+
         } else {
             RepositoryBuilder repositoryBuilder = new RepositoryBuilder();
             // TODO optimization here
@@ -107,7 +114,8 @@ public class Main {
                 if (diff > 24) {
                     Random rnd = new Random();
                     randTime = rnd.nextInt(5) + 1;
-                    while (randTime-- > 0) {
+                    int i = 0;
+                    while (i < randTime) {
                         config.setLastUpdate(currDate);
                         try {
                             mapper.writeValue(new File(path + "/temp.yaml"), config);
@@ -120,13 +128,14 @@ public class Main {
                         git.commit().setMessage("updating").call();
                         PushCommand pushCommand = git.push();
                         pushCommand.setTransportConfigCallback(transportConfigCallback).call();
+                        i++;
                     }
                 }
                 System.out.println("running " + randTime + " times");
             }
         };
         Timer timer = new Timer();
-        timer.schedule(timerTask, 0, 10000);
+        timer.schedule(timerTask, 0, 86400000);
     }
 
     /**

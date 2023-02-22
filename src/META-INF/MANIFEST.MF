@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Main-Class: me.jackson.Main
+Class-Path: lib/JavaEWAH-1.1.13.jar lib/org.eclipse.jgit-6.4.0.202211300
+ 538-r.jar lib/jackson-dataformat-yaml-2.14.2.jar lib/jackson-databind-2
+ .14.2.jar lib/slf4j-simple-2.0.6.jar lib/annotations-16.0.1.jar lib/sna
+ keyaml-1.33.jar lib/jzlib-1.1.3.jar lib/jackson-annotations-2.14.2.jar 
+ lib/jsch-0.1.55.jar lib/slf4j-api-2.0.6.jar lib/org.eclipse.jgit.ssh.js
+ ch-6.4.0.202211300538-r.jar lib/jackson-core-2.14.2.jar
+
